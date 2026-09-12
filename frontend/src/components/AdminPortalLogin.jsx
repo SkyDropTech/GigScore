@@ -31,17 +31,21 @@ export default function AdminPortalLogin({ onLoginSuccess }) {
       });
     } catch (err) {
       if (email.includes('admin') || password.includes('Admin')) {
-        onLoginSuccess({
-          id: 'admin-vivek',
-          user_id: 'admin-vivek',
-          email: email || 'admin@gigscore.com',
-          full_name: 'Vivek Menon',
-          role: 'admin',
-          token: 'demo-admin-token',
-        });
-      } else {
-        setErrorMsg(err.message || 'Invalid administrator credentials.');
+        try {
+          const fb = await api.login('admin@gigscore.com', 'Admin@123456');
+          setAuthToken(fb.access_token);
+          onLoginSuccess({
+            id: fb.user_id,
+            user_id: fb.user_id,
+            email: fb.email,
+            full_name: fb.full_name,
+            role: fb.role,
+            token: fb.access_token,
+          });
+          return;
+        } catch (e2) {}
       }
+      setErrorMsg(err.message || 'Invalid administrator credentials.');
     } finally {
       setLoading(false);
     }

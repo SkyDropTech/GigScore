@@ -3814,22 +3814,34 @@ export default function AdminOpsConsoleView({ currentUser, onLogout }) {
                             </div>
 
                             {/* Range Slider Control */}
-                            <div className="space-y-1.5 pt-1">
-                              <div className="flex items-center justify-between text-xs text-slate-500 font-mono">
-                                <span>Min: ₹10,000</span>
-                                <span className="text-blue-700 font-semibold">Drag slider to modify sanction</span>
-                                <span>Max: ₹1,50,000</span>
-                              </div>
-                              <input
-                                type="range"
-                                min={10000}
-                                max={150000}
-                                step={5000}
-                                value={sanctionAmount}
-                                onChange={(e) => setSanctionAmount(Number(e.target.value))}
-                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                              />
-                            </div>
+                            {(() => {
+                              const reqAmt = Number(decisionApp.requested_amount || 50000);
+                              const sliderMin = 10000;
+                              const sliderMax = Math.max(
+                                Math.ceil((reqAmt * 1.1) / 10000) * 10000,
+                                Math.ceil((sanctionAmount * 1.1) / 10000) * 10000,
+                                250000
+                              );
+
+                              return (
+                                <div className="space-y-1.5 pt-1">
+                                  <div className="flex items-center justify-between text-xs text-slate-500 font-mono">
+                                    <span>Min: ₹{sliderMin.toLocaleString('en-IN')}</span>
+                                    <span className="text-blue-700 font-semibold">Drag slider to modify sanction</span>
+                                    <span>Max: ₹{sliderMax.toLocaleString('en-IN')}</span>
+                                  </div>
+                                  <input
+                                    type="range"
+                                    min={sliderMin}
+                                    max={sliderMax}
+                                    step={5000}
+                                    value={Math.min(Math.max(sanctionAmount, sliderMin), sliderMax)}
+                                    onChange={(e) => setSanctionAmount(Number(e.target.value))}
+                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                  />
+                                </div>
+                              );
+                            })()}
 
                             {/* Quick Presets */}
                             <div className="flex items-center gap-2 pt-1">

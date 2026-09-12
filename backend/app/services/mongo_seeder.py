@@ -143,6 +143,13 @@ DEMO_USERS = [
         "full_name": "Aditya Nair",
         "phone": "+91 99555 66778",
         "role": "admin"
+    },
+    {
+        "id": "usr_admin_com",
+        "email": "admin@gigscore.com",
+        "full_name": "Vivek Menon (Senior Underwriter)",
+        "phone": "+91 99000 12345",
+        "role": "admin"
     }
 ]
 
