@@ -1,0 +1,11 @@
+{
+  "name": "gigscore",
+  "private": true,
+  "version": "2.0.0",
+  "description": "GigScore - Alternative Credit Risk Assessment for Gig-Economy Workers",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "cd frontend && npm run dev",
+    "preview": "cd frontend && npm run preview"
+  }
+}

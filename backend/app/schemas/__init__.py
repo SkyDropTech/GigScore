@@ -1,0 +1,39 @@
+from app.schemas.dto import (
+    RegisterRequest,
+    LoginRequest,
+    TokenResponse,
+    UserOut,
+    DriverProfileOut,
+    MonthlyRecordOut,
+    DriverSummaryMetrics,
+    ConsentCreate,
+    ConsentOut,
+    AssessmentFactorOut,
+    AssessmentOut,
+    LoanCreate,
+    LoanReviewRequest,
+    LoanOut,
+    PortfolioMetrics,
+    AuditLogOut,
+    ModelVersionOut
+)
+
+__all__ = [
+    "RegisterRequest",
+    "LoginRequest",
+    "TokenResponse",
+    "UserOut",
+    "DriverProfileOut",
+    "MonthlyRecordOut",
+    "DriverSummaryMetrics",
+    "ConsentCreate",
+    "ConsentOut",
+    "AssessmentFactorOut",
+    "AssessmentOut",
+    "LoanCreate",
+    "LoanReviewRequest",
+    "LoanOut",
+    "PortfolioMetrics",
+    "AuditLogOut",
+    "ModelVersionOut"
+]
