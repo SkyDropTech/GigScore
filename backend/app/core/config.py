@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     CLOUDINARY_API_KEY: str = os.getenv("CLOUDINARY_API_KEY", "")
     CLOUDINARY_API_SECRET: str = os.getenv("CLOUDINARY_API_SECRET", "")
 
+    # Base server URL for uploads and static files
+    BASE_SERVER_URL: str = os.getenv("BASE_SERVER_URL") or os.getenv("SERVER_URL") or os.getenv("RENDER_EXTERNAL_URL") or "https://gigscore-backend-kpio.onrender.com"
+
     class Config:
         case_sensitive = True
         env_file = str(ENV_PATH)

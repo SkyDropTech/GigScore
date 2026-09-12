@@ -30,12 +30,13 @@ class StorageService:
         file_bytes: bytes,
         original_filename: str,
         driver_id: str = "driver",
-        base_server_url: str = "http://127.0.0.1:8000"
+        base_server_url: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Permanently stores the statement PDF in Cloudinary (or permanent local storage)
         and returns the persistent URL to store in MongoDB.
         """
+        server_url = (base_server_url or settings.BASE_SERVER_URL).rstrip("/")
         clean_name = os.path.basename(original_filename) if original_filename else "statement.pdf"
         timestamp = int(time.time())
         unique_suffix = uuid.uuid4().hex[:8]
@@ -52,7 +53,7 @@ class StorageService:
         else:
             formatted_size = f"{max(1, file_size_bytes // 1024)} KB"
 
-        local_permanent_url = f"{base_server_url}/uploads/statements/{safe_filename}"
+        local_permanent_url = f"{server_url}/uploads/statements/{safe_filename}"
 
         # 2. Upload to Cloudinary if configured
         if cls._is_cloudinary_configured():

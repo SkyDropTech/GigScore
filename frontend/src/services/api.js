@@ -12,6 +12,18 @@ const getApiBase = () => {
 
 const API_BASE = getApiBase();
 
+export const resolveMediaUrl = (url) => {
+  if (!url) return '';
+  const backendBase = (import.meta.env.VITE_API_URL || 'https://gigscore-backend-kpio.onrender.com').replace(/\/+$/, '');
+  if (url.includes('127.0.0.1:8000') || url.includes('localhost:8000')) {
+    return url.replace(/^https?:\/\/(127\.0\.0\.1|localhost):8000/, backendBase);
+  }
+  if (url.startsWith('/')) {
+    return `${backendBase}${url}`;
+  }
+  return url;
+};
+
 export const getAuthToken = () => localStorage.getItem('gigscore_token') || '';
 export const setAuthToken = (token) => localStorage.setItem('gigscore_token', token);
 export const removeAuthToken = () => localStorage.removeItem('gigscore_token');

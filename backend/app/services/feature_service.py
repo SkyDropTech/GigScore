@@ -18,6 +18,7 @@ if ML_SRC_DIR not in sys.path:
     sys.path.insert(0, ML_SRC_DIR)
 
 from features import calculate_driver_features_from_monthly, MODEL_FEATURE_NAMES, FEATURE_DESCRIPTIONS
+from app.core.config import settings
 from app.services.pdf_parser_service import PdfParserService
 from app.db.mongodb import driver_profiles_col, monthly_features_col, consents_col, users_col
 from app.models.mongo_models import DriverProfile, MonthlyFeatures
@@ -112,7 +113,7 @@ class FeatureService:
             monthly_features_col.insert_many(new_records)
 
         # Update driver profile with file details, permanent storage URL, and connected status
-        resolved_url = file_url or driver_doc.get("uploaded_file_url") or f"http://127.0.0.1:8000/uploads/statements/{driver_id}_{file_name}"
+        resolved_url = file_url or driver_doc.get("uploaded_file_url") or f"{settings.BASE_SERVER_URL.rstrip('/')}/uploads/statements/{driver_id}_{file_name}"
 
         driver_profiles_col.update_one(
             {"id": driver_id},

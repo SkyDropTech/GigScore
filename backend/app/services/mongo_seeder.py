@@ -7,6 +7,7 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Dict, Any
 
+from app.core.config import settings
 from app.core.security import hash_password
 from app.db.mongodb import (
     users_col, driver_profiles_col, monthly_features_col,
@@ -199,7 +200,7 @@ def seed_mongo_database(force_reset: bool = False):
                 "kyc_status": "VERIFIED",
                 "archetype": u_info["archetype"],
                 "uploaded_file_name": f"{u_info['driver_id']}_verified_statement.pdf",
-                "uploaded_file_url": f"http://127.0.0.1:8000/uploads/statements/{u_info['driver_id']}_verified_statement.pdf",
+                "uploaded_file_url": f"{settings.BASE_SERVER_URL.rstrip('/')}/uploads/statements/{u_info['driver_id']}_verified_statement.pdf",
                 "uploaded_file_size": "2.8 MB",
                 "ola_connected": True,
                 "uber_connected": True,
@@ -264,7 +265,7 @@ def seed_mongo_database(force_reset: bool = False):
                     "purpose": loan_cfg["purpose"],
                     "status": "PENDING",
                     "uploaded_file_name": f"{u_info['driver_id']}_verified_statement.pdf",
-                    "uploaded_file_url": f"http://127.0.0.1:8000/uploads/statements/{u_info['driver_id']}_verified_statement.pdf",
+                    "uploaded_file_url": f"{settings.BASE_SERVER_URL.rstrip('/')}/uploads/statements/{u_info['driver_id']}_verified_statement.pdf",
                     "uploaded_file_size": "2.8 MB",
                     "created_at": datetime.utcnow() - timedelta(days=1)
                 }

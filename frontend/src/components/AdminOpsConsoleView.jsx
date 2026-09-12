@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { api } from '../services/api';
+import { api, resolveMediaUrl } from '../services/api';
 import {
   Activity,
   RefreshCw,
@@ -2604,7 +2604,7 @@ export default function AdminOpsConsoleView({ currentUser, onLogout }) {
                                       <div className="flex items-center gap-1 shrink-0">
                                         <button onClick={() => setDossierTab('cashflow')} className="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-50 rounded text-[11px] font-semibold text-slate-700 cursor-pointer">View</button>
                                         {activeDriver.enriched.uploadedFileUrl ? (
-                                          <a href={activeDriver.enriched.uploadedFileUrl} target="_blank" rel="noreferrer" className="p-1 text-blue-600 hover:text-blue-800 cursor-pointer" title="Download real file">
+                                          <a href={resolveMediaUrl(activeDriver.enriched.uploadedFileUrl)} target="_blank" rel="noreferrer" className="p-1 text-blue-600 hover:text-blue-800 cursor-pointer" title="Download real file">
                                             <span className="material-symbols-outlined text-[16px]">download</span>
                                           </a>
                                         ) : (

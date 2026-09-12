@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { api } from '../services/api';
+import { api, resolveMediaUrl } from '../services/api';
 
 export default function DriverDataIngestView({ currentPersona, onLogout, onSwitchToAdmin }) {
   const navigate = useNavigate();
@@ -1044,7 +1044,7 @@ export default function DriverDataIngestView({ currentPersona, onLogout, onSwitc
 
                           {uploadedFile?.url && (
                             <a
-                              href={uploadedFile.url}
+                              href={resolveMediaUrl(uploadedFile.url)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="h-11 px-4 rounded-xl bg-surface-container text-on-surface font-label-md text-label-md font-semibold hover:bg-surface-container-high transition-colors flex items-center gap-1.5 shadow-sm"
@@ -4237,7 +4237,7 @@ export default function DriverDataIngestView({ currentPersona, onLogout, onSwitc
                                     <span>•</span>
                                     {(loan.uploaded_file_url || uploadedFile?.url) ? (
                                       <a
-                                        href={loan.uploaded_file_url || uploadedFile?.url}
+                                        href={resolveMediaUrl(loan.uploaded_file_url || uploadedFile?.url)}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-1 text-secondary font-semibold hover:underline"
