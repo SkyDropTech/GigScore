@@ -12,8 +12,10 @@ import numpy as np
 from datetime import datetime
 from typing import Dict, Any, Tuple, Optional
 
-# Add ml/src to sys.path
+# Add ml/src to sys.path (supports both repo root and backend-only deployments)
 ML_SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "ml", "src"))
+if not os.path.exists(ML_SRC_DIR):
+    ML_SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ml", "src"))
 if ML_SRC_DIR not in sys.path:
     sys.path.insert(0, ML_SRC_DIR)
 

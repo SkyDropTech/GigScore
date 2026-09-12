@@ -10,8 +10,10 @@ import numpy as np
 from typing import Dict, Any, List, Optional
 from pymongo import ASCENDING
 
-# Ensure ml/src is importable
+# Ensure ml/src is importable (supports both repo root and backend-only deployments)
 ML_SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "ml", "src"))
+if not os.path.exists(ML_SRC_DIR):
+    ML_SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ml", "src"))
 if ML_SRC_DIR not in sys.path:
     sys.path.insert(0, ML_SRC_DIR)
 
