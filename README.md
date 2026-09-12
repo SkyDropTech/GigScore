@@ -1,251 +1,196 @@
-# 🚀 GigScore: Explainable Alternative Credit Risk Assessment for Gig Workers
+GigScore --- Synthetic Driver Earnings Statement Generator
 
-> **A modern, full-stack fintech platform that translates gig-platform ride telemetry, income stability, and banking cash flows into an explainable 300–900 alternative credit score powered by Calibrated XGBoost & TreeSHAP on MongoDB Atlas.**
+This README explains how to generate a synthetic GigScore Driver
+Earnings & Ride Statement PDF that matches the structure of the
+reference statement.
 
----
+Important: The generated statement is synthetic/demo data only. It
+must not be presented as a real financial, employment, income, or
+credit document.
 
-## 📌 Table of Contents
-1. [Admin & Demo Login Credentials](#1-admin--demo-login-credentials)
-2. [ChatGPT Prompt: Generate Compliant PDF Statements](#2-chatgpt-prompt-generate-compliant-pdf-statements)
-3. [Full Project Deployment on Vercel](#3-full-project-deployment-on-vercel)
-4. [Local Development Setup](#4-local-development-setup)
-5. [Architecture & Machine Learning Engine](#5-architecture--machine-learning-engine)
-6. [API Endpoints Reference](#6-api-endpoints-reference)
+Reference PDF Structure
 
----
+The reference PDF is a one-page "GigScore - Driver Earnings & Ride
+Statement" containing:
 
-## 1. Admin & Demo Login Credentials
+A document title
 
-You can log into GigScore using two distinct portals:
-- **Admin & Underwriting Portal**: `http://localhost:5173/login/admin`
-- **Driver Self-Service Portal**: `http://localhost:5173/login/driver`
+A synthetic/demo-data disclaimer
 
-### 🔑 Administrator & Senior Underwriter Credentials
+Driver information
 
-| Role | Email | Password | Access Level |
-|---|---|---|---|
-| **Senior Underwriter / Admin** | `admin@gigscore.com` | `Admin@123456` | Full Underwriting Queue, Sanction Slider, MLOps, System Health, Audit Logs |
-| **Admin (Alternative)** | `admin@gigscore.demo` | `password123` | Full Admin & MLOps Console |
-| **Credit Underwriter** | `priya.underwriter@gigscore.demo` | `password123` | Credit Assessment & Loan Review Queue |
+A summary metrics table
 
-> **💡 Quick Tip**: On the Admin Login page, you can click the **"Quick Fill Underwriter Demo"** button to auto-fill the credentials in 1 click!
+A monthly earnings summary table
 
----
+A final synthetic-data disclaimer
 
-### 🚗 Pre-Seeded Driver Personas (Password: `password123`)
+The reference contains driver/platform details followed by metrics such
+as period, completed rides, gross earnings, platform fees, estimated
+fuel costs, estimated net earnings, average monthly net income,
+cancellation rate, and average rating. It also contains six monthly
+records from March 2026 through August 2026.
 
-| Driver Name | Email | Platform | Profile & Archetype | Initial Credit Grade |
-|---|---|---|---|---|
-| **Rahul Sharma** | `rahul.sharma@gigscore.demo` | Ola & Uber (Dzire, BLR) | High & Consistent Earner (₹54k/mo, 96% comp.) | **873 (Prime)** |
-| **Rajesh Kumar** | `rajesh.kumar@gigscore.demo` | Ola Fleet (Dzire, BLR) | Stable High Tenure (36 mos, ₹54k/mo) | **855 (Prime)** |
-| **Amit Shinde** | `amit.shinde@gigscore.demo` | Uber Go (WagonR, BOM) | Moderate Volatile (₹38k/mo, 8% canc.) | **727 (Near-Prime)** |
-| **Suresh Yadav** | `suresh.yadav@gigscore.demo` | Ola Auto (Mumbai) | Top Performer (₹68k/mo, 520 trips/mo) | **885 (Prime)** |
-| **Imran Khan** | `imran.khan@gigscore.demo` | Uber Moto (DEL) | Irregular / High Cancellation (₹16k/mo, 23% canc.) | **340 (Subprime)** |
+Copy-Paste Prompt for ChatGPT
 
----
+Copy the prompt below into ChatGPT whenever you want to generate a new
+synthetic statement.
 
-## 2. ChatGPT Prompt: Generate Compliant PDF Statements
+Create a one-page PDF named [FILENAME].pdf using Python and ReportLab.
 
-GigScore features an automated **PDF Ingestion & Telemetry Parser Engine** (`pypdf` + regex extraction). It scans driver earnings statements for name, platform, active days, trip counts, completion rates, and monthly revenue.
+The PDF must be a synthetic/demo document for testing a GigScore upload, parsing, feature-engineering, and ML workflow. It must NOT represent real earnings, employment, financial history, or a real financial statement.
 
-### 📋 Copy & Paste This Prompt into ChatGPT:
+Use this exact document structure and headers:
 
-Copy the exact block below and paste it into **ChatGPT (GPT-4o or ChatGPT with Python Code Interpreter)** to have it generate and download a compliant statement PDF:
-
-```text
-Please write and execute a Python script using ReportLab to generate and give me a downloadable PDF file named "Rishikesh_Shedge_Verified_Statement.pdf".
-
-The PDF must contain the exact structure and text headers below so that our credit assessment regex engine can parse it:
-
----
 [DOCUMENT HEADER]
-Title: GIG-ECONOMY OPERATIONAL TELEMETRY & EARNINGS STATEMENT
-Subtitle: Verified Aggregate Statement via Setu Account Aggregator & Platform API Gateway
+Title: GigScore - Driver Earnings & Ride Statement
+Disclaimer: DEMO / SYNTHETIC DATA - NOT A REAL FINANCIAL STATEMENT
 
-[DRIVER METADATA BLOCK]
-Driver: Rishikesh Shedge
-Driver ID: DRV-884210
-Platform: Uber & Ola Fleet
+[SUMMARY TABLE]
+Use a two-column table with the exact headers:
+Metric | Value
+
+Include these rows:
+Period | [START MONTH] - [END MONTH]
+Completed rides | [TOTAL RIDES]
+Gross earnings | INR [GROSS EARNINGS]
+Platform fees | INR [PLATFORM FEES]
+Estimated fuel costs | INR [FUEL COSTS]
+Estimated net earnings | INR [NET EARNINGS]
+Average monthly net income | INR [AVERAGE MONTHLY NET]
+Cancellation rate | [CANCELLATION RATE]%
+Average rating | [RATING] / 5
+
+[MONTHLY EARNINGS SUMMARY]
+Heading:
+Monthly Earnings Summary
+
+Use a seven-column table with these exact headers:
+Month | Trips | Active Days | Gross | Fees | Fuel | Net
+
+Add one row for each requested month:
+[YYYY-MM] | [TRIPS] | [ACTIVE DAYS] | INR [GROSS] | INR [FEES] | INR [FUEL] | INR [NET]
+
+[FINAL DISCLAIMER]
+Add this exact text at the bottom:
+
+Synthetic records created for testing the GigScore upload, parsing, feature-engineering and ML workflow. They do not represent real earnings, employment or financial history.
+
+FORMATTING REQUIREMENTS:
+1. Generate the PDF with ReportLab.
+2. Keep it to one page if possible.
+3. Make the title large and bold.
+4. Put the demo/synthetic disclaimer near the top in bold/italic styling.
+5. Display driver information clearly.
+6. Use bordered tables with readable column headings.
+7. Use INR for all monetary values.
+8. Keep the visual structure similar to a professional earnings statement.
+9. Do not add extra sections, logos, signatures, bank details, tax information, credit scores, or claims that are not requested above.
+10. Ensure all text is selectable/searchable in the PDF so a PDF parser/regex engine can extract it.
+11. Use the exact field names and headings specified above.
+12. Save the final file as [FILENAME].pdf and provide a download link.
+13. Before finishing, verify that the PDF was successfully generated and contains all required sections.
+
+Example Input
+
+For example, to create a statement for another synthetic driver, replace
+the placeholders with:
+
+Driver: Ayan Kumar
+Driver ID: GS-DEMO-AK002
+Platform: Uber
 City: Pune
-Vehicle: Sedan (Maruti Suzuki Dzire)
-Period: 2024-01 to 2024-12
-Verification Status: VERIFIED via DigiLocker & AA Sandbox
+Vehicle: Car
 
-[ML FEATURE SUMMARY BLOCK]
-avg_monthly_net_income: INR 52,400.00
-income_std: INR 3,850.00
-coefficient_of_variation: 0.073
-min_income: INR 46,200.00
-income_slope_3m: 0.042
-recent_vs_historical_income: 1.08
-estimated_disposable_income: INR 31,440.00
-active_days_monthly: 26.0
-trips_per_month: 440
-trips_per_day: 16.9
-completion_rate: 96.4%
-cancellation_rate: 3.6%
-avg_rating: 4.88 / 5
+Period: Mar 2026 - Aug 2026
 
-[12-MONTH TELEMETRY TABLE]
-The table MUST have these exact column headers:
-Month | Trips | Active_Days | Gross_Income | Platform_Fee | Other_Costs | Net_Income
+You can also provide your own synthetic monthly values.
 
-Include these 12 rows formatted with INR currency:
-2024-01 | 420 | 25 | INR 68,000.00 | INR 13,600.00 | INR 6,800.00 | INR 47,600.00
-2024-02 | 435 | 26 | INR 70,500.00 | INR 14,100.00 | INR 7,050.00 | INR 49,350.00
-2024-03 | 448 | 26 | INR 72,000.00 | INR 14,400.00 | INR 7,200.00 | INR 50,400.00
-2024-04 | 430 | 25 | INR 69,200.00 | INR 13,840.00 | INR 6,920.00 | INR 48,440.00
-2024-05 | 455 | 27 | INR 74,000.00 | INR 14,800.00 | INR 7,400.00 | INR 51,800.00
-2024-06 | 442 | 26 | INR 71,800.00 | INR 14,360.00 | INR 7,180.00 | INR 50,260.00
-2024-07 | 450 | 27 | INR 73,500.00 | INR 14,700.00 | INR 7,350.00 | INR 51,450.00
-2024-08 | 460 | 27 | INR 75,000.00 | INR 15,000.00 | INR 7,500.00 | INR 52,500.00
-2024-09 | 438 | 26 | INR 71,200.00 | INR 14,240.00 | INR 7,120.00 | INR 49,840.00
-2024-10 | 465 | 28 | INR 76,400.00 | INR 15,280.00 | INR 7,640.00 | INR 53,480.00
-2024-11 | 470 | 28 | INR 78,000.00 | INR 15,600.00 | INR 7,800.00 | INR 54,600.00
-2024-12 | 485 | 28 | INR 81,500.00 | INR 16,300.00 | INR 8,150.00 | INR 57,050.00
+Data Consistency Rules
 
-[SECURITY & SIGNATURE FOOTER]
-Digital Signature: SHA256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069
-Issuer: Setu AA Sandbox Gateway / UIDAI Verified
----
+When supplying values, keep the calculations internally consistent:
 
-Please generate this PDF with clean styling (fintech blue theme, nice typography) and provide the download link.
-```
+Net earnings = Gross earnings − Platform fees − Estimated fuel
+costs
 
----
+Average monthly net income = Total net earnings ÷ number of
+months
 
-## 3. Full Project Deployment on Vercel
+Completed rides = sum of monthly Trips
 
-GigScore is architected as a decoupled modern web application:
-- **Frontend (React 19 + Vite)**: Deployed to **Vercel Global Edge CDN**.
-- **Database**: Cloud-hosted on **MongoDB Atlas**.
-- **Backend (FastAPI + XGBoost + TreeSHAP)**: Deployed to **Render**, **Railway**, **Fly.io**, or an **AWS/DigitalOcean VPS** (due to binary ML libraries like `xgboost` and `scikit-learn` exceeding Vercel Serverless Function package size limits).
+Monthly Net should equal Gross − Fees − Fuel.
 
----
+Use the same currency notation throughout: INR.
 
-### Step 1: Deploy Frontend to Vercel
+Use a consistent month format such as YYYY-MM.
 
-1. Push your project to GitHub / GitLab:
-   ```bash
-   git add .
-   git commit -m "Deploy GigScore to Vercel"
-   git push origin main
-   ```
-2. Go to [Vercel Dashboard](https://vercel.com/new) and click **"Add New..."** → **"Project"**.
-3. Import your **GigScore** repository.
-4. **Vercel Project Settings**:
-   - **Framework Preset**: `Vite` (automatically detected from `package.json` and `vercel.json`).
-   - **Root Directory**: Leave as `./` (or choose `frontend` if deploying frontend-only).
-   - **Build Command**: `cd frontend && npm install && npm run build` (automatic).
-   - **Output Directory**: `frontend/dist` (automatic).
-5. **Environment Variables** in Vercel Settings:
-   - Key: `VITE_API_URL`
-   - Value: `https://your-backend-api.onrender.com` (your deployed FastAPI URL).
-6. Click **Deploy**! Vercel will build and assign you a live HTTPS domain (`https://gigscore.vercel.app`).
+These rules make the generated PDF more useful for testing parsing and
+ML feature-engineering pipelines.
 
----
+Expected PDF Layout
 
-### Step 2: Deploy Backend (e.g. Render.com / Railway)
+The resulting PDF should visually follow this order:
 
-1. Go to [Render Dashboard](https://dashboard.render.com) and select **"New Web Service"**.
-2. Connect your **GigScore** Git repository.
-3. Configure settings:
-   - **Root Directory**: `backend`
-   - **Environment**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-4. **Add Environment Variables** in Render:
-   ```env
-   MONGO_URI=mongodb+srv://Skydrop:Skydrop123@booklibrary.gpib5sv.mongodb.net/gigscore?retryWrites=true&w=majority&appName=BookLibrary
-   MONGODB_URL=mongodb+srv://Skydrop:Skydrop123@booklibrary.gpib5sv.mongodb.net/gigscore?retryWrites=true&w=majority&appName=BookLibrary
-   MONGODB_DB_NAME=gigscore
-   SECRET_KEY=gigscore_super_secret_jwt_key_2026_production_grade
-   ALGORITHM=HS256
-   ACCESS_TOKEN_EXPIRE_MINUTES=1440
-   CLOUDINARY_CLOUD_NAME=gigscore-cloud
-   CLOUDINARY_API_KEY=233318421214557
-   CLOUDINARY_API_SECRET=CrEp-Xr6vhp-LTQsp3uwin68g0k
-   ```
-5. Click **Create Web Service**. Once deployed, copy your Render URL and add it as `VITE_API_URL` in your Vercel project settings.
+GigScore - Driver Earnings & Ride Statement
 
----
+DEMO / SYNTHETIC DATA - NOT A REAL FINANCIAL STATEMENT
 
-## 4. Local Development Setup
+Driver: ...
+Driver ID: ...
+Platform: ...
+City: ...
+Vehicle: ...
 
-### Prerequisites
-- Python 3.10+
-- Node.js 18+ and npm
+┌──────────────────────────┬─────────────────────────┐
+│ Metric                   │ Value                   │
+├──────────────────────────┼─────────────────────────┤
+│ Period                   │ ...                     │
+│ Completed rides          │ ...                     │
+│ Gross earnings           │ INR ...                 │
+│ Platform fees            │ INR ...                 │
+│ Estimated fuel costs     │ INR ...                 │
+│ Estimated net earnings   │ INR ...                 │
+│ Average monthly net      │ INR ...                 │
+│ Cancellation rate        │ ...%                    │
+│ Average rating           │ ... / 5                 │
+└──────────────────────────┴─────────────────────────┘
 
-### 1. Backend Setup:
-```powershell
-cd backend
-python -m venv venv
-.\venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
-```
-- API Server: `http://127.0.0.1:8000`
-- Interactive OpenAPI Docs: `http://127.0.0.1:8000/docs`
-- Health Check: `http://127.0.0.1:8000/api/health`
+Monthly Earnings Summary
 
-### 2. Frontend Setup:
-```powershell
-cd frontend
-npm install
-npm run dev
-```
-- Web App: `http://localhost:5173`
+┌─────────┬───────┬─────────────┬──────────┬──────────┬──────────┬──────────┐
+│ Month   │ Trips │ Active Days │ Gross    │ Fees     │ Fuel     │ Net      │
+├─────────┼───────┼─────────────┼──────────┼──────────┼──────────┼──────────┤
+│ ...     │ ...   │ ...         │ INR ...  │ INR ...  │ INR ...  │ INR ...  │
+└─────────┴───────┴─────────────┴──────────┴──────────┴──────────┴──────────┘
 
----
+Synthetic records created for testing the GigScore upload,
+parsing, feature-engineering and ML workflow. They do not
+represent real earnings, employment or financial history.
 
-## 5. Architecture & Machine Learning Engine
+Why This Format Is Useful
 
-```
-[Driver App / Bank AA] ──> [FastAPI Telemetry Ingest] ──> [MongoDB Atlas Cluster]
-                                       │
-                                       ▼
-                       [Feature Transformation Engine]
-                         (CV, 3M Slope, Ratings, Comp%)
-                                       │
-                                       ▼
-                         [Calibrated XGBoost Model]
-                                       │
-                                       ▼
-              [TreeSHAP Reason Codes] + [300-900 Credit Grade]
-                                       │
-                                       ▼
-                     [Underwriting Decision Gate]
-                  (Dynamic Sanction Slider & Policy Audit)
-```
+This format is designed for a project pipeline where a user uploads a
+PDF and the backend can:
 
-### Probability to Score Translation
-Alternative credit scores are generated on the standard 300–900 scale:
-$$\text{Score} = \text{clamp}\left(900 - (P(\text{Default}) \times 600), 300, 900\right)$$
+1.Extract text from the PDF.
 
-- **LOW RISK (Prime)**: Score $\ge 750$ ($P(\text{Default}) < 15\%$)
-- **MEDIUM RISK (Near-Prime)**: Score $600 - 749$ ($15\% \le P(\text{Default}) < 35\%$)
-- **HIGH RISK (Subprime)**: Score $< 600$ ($P(\text{Default}) \ge 35\%$)
+2.Identify driver and platform fields.
 
----
+3.Parse financial metrics.
 
-## 6. API Endpoints Reference
+4.Extract monthly earnings records.
 
-### 🔐 Authentication & Session
-- `POST /api/auth/register` — Register driver or underwriter.
-- `POST /api/auth/login` — Authenticate and receive JWT access token.
-- `GET /api/users/me` — Fetch current user profile.
-- `GET /api/demo/personas` — Fetch pre-seeded demo accounts.
-- `POST /api/demo/reset` — Reset database to pristine state.
+5.Convert the extracted values into ML features.
 
-### 🚗 Driver Operations
-- `POST /api/drivers/me/upload-statement` — Upload earnings PDF statement.
-- `POST /api/drivers/me/ingest` — Parse and ingest statement telemetry into MongoDB.
-- `GET /api/drivers/me/summary` — Key stability metrics and latest score.
-- `GET /api/drivers/me/earnings` — 12-month earnings, fees, and trip breakdown.
+6.Run the resulting features through a credit/earnings assessment
+model.
 
-### 🏦 Loans & Underwriting
-- `POST /api/loans` — Apply for a loan (triggers real-time XGBoost scoring).
-- `GET /api/loans` — List active loans.
-- `GET /api/lender/applications` — Underwriting review queue.
-- `POST /api/lender/applications/{id}/review` — Manual approval, sanction amount override, or denial.
-- `GET /api/lender/portfolio` — Portfolio exposure, sanction volume, and default rates.
+The reference PDF explicitly describes itself as synthetic data created
+for testing the GigScore upload, parsing, feature-engineering, and ML
+workflow.
+
+Safety / Demo Data Notice
+
+Use fictional names, IDs, earnings, trips, and other values when
+generating test documents. Do not use the generated PDF as proof of
+income, employment, identity, or financial history.

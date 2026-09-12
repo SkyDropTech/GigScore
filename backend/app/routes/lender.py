@@ -63,26 +63,44 @@ def get_lender_queue(
         mongo_filter["status"] = status_filter.upper()
 
     app_docs = list(loan_applications_col.find(mongo_filter).sort("created_at", DESCENDING))
-    results = []
-    
-    for app in app_docs:
-        driver = driver_profiles_col.find_one({"id": app.get("driver_id")})
-        if not driver:
-            driver = driver_profiles_col.find_one({"user_id": app.get("driver_id")})
-        
-        driver_user = users_col.find_one({"id": driver.get("user_id")}) if driver else None
-        if not driver_user and app.get("driver_id"):
-            driver_user = users_col.find_one({"id": app.get("driver_id")})
+    if not app_docs:
+        return []
 
-        latest_asmt = assessments_col.find_one(
-            {"application_id": app.get("id")},
-            sort=[("created_at", -1)]
-        )
-        if not latest_asmt and app.get("driver_id"):
-            latest_asmt = assessments_col.find_one(
-                {"driver_id": app.get("driver_id")},
-                sort=[("created_at", -1)]
-            )
+    driver_ids = list({app.get("driver_id") for app in app_docs if app.get("driver_id")})
+    app_ids = [app.get("id") for app in app_docs if app.get("id")]
+
+    # Batch fetch drivers
+    drivers_list = list(driver_profiles_col.find({"$or": [{"id": {"$in": driver_ids}}, {"user_id": {"$in": driver_ids}}]})) if driver_ids else []
+    driver_by_id = {}
+    user_ids = set(driver_ids)
+    for d in drivers_list:
+        if d.get("id"):
+            driver_by_id[d["id"]] = d
+        if d.get("user_id"):
+            driver_by_id[d["user_id"]] = d
+            user_ids.add(d["user_id"])
+
+    # Batch fetch users
+    users_list = list(users_col.find({"id": {"$in": list(user_ids)}})) if user_ids else []
+    user_by_id = {u["id"]: u for u in users_list if u.get("id")}
+
+    # Batch fetch latest assessments
+    asmt_by_app_id = {}
+    asmt_by_driver_id = {}
+    if app_ids or driver_ids:
+        for a in assessments_col.find({"$or": [{"application_id": {"$in": app_ids}}, {"driver_id": {"$in": driver_ids}}]}).sort("created_at", DESCENDING):
+            if a.get("application_id") and a["application_id"] not in asmt_by_app_id:
+                asmt_by_app_id[a["application_id"]] = a
+            if a.get("driver_id") and a["driver_id"] not in asmt_by_driver_id:
+                asmt_by_driver_id[a["driver_id"]] = a
+
+    results = []
+    for app in app_docs:
+        did = app.get("driver_id")
+        driver = driver_by_id.get(did)
+        driver_user = user_by_id.get(driver.get("user_id") if driver else None) or user_by_id.get(did)
+
+        latest_asmt = asmt_by_app_id.get(app.get("id")) or asmt_by_driver_id.get(did)
 
         if risk_band_filter and risk_band_filter != "ALL":
             if not latest_asmt or latest_asmt.get("risk_band") != risk_band_filter.upper():
@@ -189,39 +207,55 @@ def get_all_users_and_drivers(
     """
     Returns every user and driver with all details uploaded and done on their account.
     """
+    from collections import defaultdict
     from app.db.mongodb import monthly_features_col, consents_col
     users = list(users_col.find({"role": "driver"}).sort("created_at", DESCENDING))
-    results = []
-    
-    for u in users:
-        driver = driver_profiles_col.find_one({"user_id": u["id"]}) or {}
-        driver_id = driver.get("id")
-        
-        monthly_records = []
-        if driver_id:
-            m_docs = list(monthly_features_col.find({"driver_id": driver_id}).sort("month", ASCENDING))
-            for r in m_docs:
-                r["_id"] = str(r.get("_id", ""))
-                monthly_records.append(r)
-                
-        assessments = []
-        if driver_id:
-            a_docs = list(assessments_col.find({"driver_id": driver_id}).sort("created_at", DESCENDING))
-            for a in a_docs:
-                a["_id"] = str(a.get("_id", ""))
-                assessments.append(a)
-                
-        loans = []
-        if driver_id:
-            l_docs = list(loan_applications_col.find({"driver_id": driver_id}).sort("created_at", DESCENDING))
-            for l in l_docs:
-                l["_id"] = str(l.get("_id", ""))
-                loans.append(l)
-                
-        consent = consents_col.find_one({"user_id": u["id"], "is_active": True})
-        if consent:
-            consent["_id"] = str(consent.get("_id", ""))
+    if not users:
+        return []
 
+    user_ids = [u["id"] for u in users]
+
+    # Batch fetch drivers
+    drivers_list = list(driver_profiles_col.find({"user_id": {"$in": user_ids}}))
+    driver_by_uid = {d["user_id"]: d for d in drivers_list if d.get("user_id")}
+    driver_ids = [d["id"] for d in drivers_list if d.get("id")]
+
+    # Batch fetch monthly features
+    mf_by_did = defaultdict(list)
+    if driver_ids:
+        for r in monthly_features_col.find({"driver_id": {"$in": driver_ids}}).sort("month", ASCENDING):
+            r["_id"] = str(r.get("_id", ""))
+            mf_by_did[r["driver_id"]].append(r)
+
+    # Batch fetch assessments
+    asmt_by_did = defaultdict(list)
+    if driver_ids:
+        for a in assessments_col.find({"driver_id": {"$in": driver_ids}}).sort("created_at", DESCENDING):
+            a["_id"] = str(a.get("_id", ""))
+            asmt_by_did[a["driver_id"]].append(a)
+
+    # Batch fetch loans
+    loans_by_did = defaultdict(list)
+    if driver_ids:
+        for l in loan_applications_col.find({"driver_id": {"$in": driver_ids}}).sort("created_at", DESCENDING):
+            l["_id"] = str(l.get("_id", ""))
+            loans_by_did[l["driver_id"]].append(l)
+
+    # Batch fetch active consents
+    consent_by_uid = {}
+    for c in consents_col.find({"user_id": {"$in": user_ids}, "is_active": True}):
+        c["_id"] = str(c.get("_id", ""))
+        consent_by_uid[c["user_id"]] = c
+
+    results = []
+    for u in users:
+        driver = driver_by_uid.get(u["id"]) or {}
+        driver_id = driver.get("id")
+
+        monthly_records = mf_by_did.get(driver_id, []) if driver_id else []
+        assessments = asmt_by_did.get(driver_id, []) if driver_id else []
+        loans = loans_by_did.get(driver_id, []) if driver_id else []
+        consent = consent_by_uid.get(u["id"])
         latest_asmt = assessments[0] if assessments else None
         
         results.append({

@@ -210,19 +210,20 @@ export default function DriverDataIngestView({ currentPersona, onLogout, onSwitc
     </div>
   );
 
-  // Load existing profile, loans and state on mount
+  // Load existing profile, loans and state on mount in parallel
   const loadDriverState = async () => {
     try {
-      const summary = await api.getDriverSummary();
-      setDriverSummary(summary);
+      const [summary, earnings, loans, profile, realAsmt] = await Promise.all([
+        api.getDriverSummary().catch(() => null),
+        api.getDriverEarnings().catch(() => []),
+        api.getLoans().catch(() => []),
+        api.getDriverProfile().catch(() => null),
+        api.getDriverAssessment().catch(() => null),
+      ]);
 
-      const earnings = await api.getDriverEarnings();
+      if (summary) setDriverSummary(summary);
       setMonthlyEarnings(earnings || []);
-
-      const loans = await api.getLoans();
       setActiveLoans(loans || []);
-
-      const profile = await api.getDriverProfile().catch(() => null);
       setDriverProfile(profile);
 
       if (profile && profile.uploaded_file_name) {
@@ -242,8 +243,7 @@ export default function DriverDataIngestView({ currentPersona, onLogout, onSwitc
         setUploadProgress(100);
       }
 
-      // Fetch real ML assessment from MongoDB without hardcoded sample data
-      const realAsmt = await api.getDriverAssessment().catch(() => null);
+      // Set ML assessment
       if (realAsmt) {
         setMlAssessment(realAsmt);
       } else {
