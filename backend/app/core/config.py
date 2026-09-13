@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     # Base server URL for uploads and static files
     BASE_SERVER_URL: str = os.getenv("BASE_SERVER_URL") or os.getenv("SERVER_URL") or os.getenv("RENDER_EXTERNAL_URL") or "https://gigscore-backend-kpio.onrender.com"
 
+    # Keep-Alive & UptimeRobot Bot Settings
+    UPTIMEROBOT_API_KEY: str = os.getenv("UPTIMEROBOT_API_KEY", "")
+    ENABLE_SELF_PING: bool = os.getenv("ENABLE_SELF_PING", "true").lower() in ("1", "true", "yes")
+    SELF_PING_INTERVAL_MINUTES: int = int(os.getenv("SELF_PING_INTERVAL_MINUTES", "10"))
+    PING_ENDPOINT: str = os.getenv("PING_ENDPOINT", "")
+
     class Config:
         case_sensitive = True
         env_file = str(ENV_PATH)

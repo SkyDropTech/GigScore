@@ -71,11 +71,24 @@ If hosting the backend on [Render.com](https://render.com) (free/easy web servic
    CLOUDINARY_API_KEY=233318421214557
    CLOUDINARY_API_SECRET=CrEp-Xr6vhp-LTQsp3uwin68g0k
    ```
-4. Copy the backend URL (e.g. `https://gigscore-api.onrender.com`) and paste it as `VITE_API_URL` in your Vercel Project settings.
+4. Copy the backend URL (e.g. `https://gigscore-backend-kpio.onrender.com`) and paste it as `VITE_API_URL` in your Vercel Project settings.
 
 ---
 
-## 3. Files Added / Updated for Vercel
+## 4. Preventing Render Sleep (UptimeRobot Keep-Alive Bot)
+
+Render free instances sleep after 15 minutes of inactivity. To keep it awake 24/7 without delays:
+1. Go to [https://dashboard.uptimerobot.com/](https://dashboard.uptimerobot.com/)
+2. Add New Monitor -> **HTTP(s)**
+3. URL: `https://gigscore-backend-kpio.onrender.com/api/ping`
+4. Interval: **5 minutes**
+5. Done! The backend will be pinged automatically, preventing sleep.
+
+See [RENDER_KEEPALIVE_UPTIMEROBOT_GUIDE.md](file:///d:/GigScore/RENDER_KEEPALIVE_UPTIMEROBOT_GUIDE.md) for full details and automated API setup.
+
+---
+
+## 5. Files Added / Updated for Vercel & KeepAlive
 
 - [`backend/.env`](file:///d:/GigScore/backend/.env): Updated with MongoDB Atlas URI and database `focusdesk`.
 - [`backend/.env.example`](file:///d:/GigScore/backend/.env.example): Updated with `MONGO_URI` template.

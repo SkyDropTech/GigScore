@@ -8,10 +8,12 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from contextlib import asynccontextmanager
 
+import asyncio
 from app.core.config import settings
 from app.db.mongodb import init_mongo_indexes, ping_mongo
-from app.routes import auth, consents, drivers, loans, assessments, lender, admin, audit, demo
+from app.routes import auth, consents, drivers, loans, assessments, lender, admin, audit, demo, keepalive
 from app.services.mongo_seeder import seed_mongo_database
+from app.services.keepalive import keepalive_service
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,8 +25,17 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"Warning: Demo seeder notice: {e}")
     print("Connected to MongoDB database:", settings.MONGODB_DB_NAME)
+
+    # Start keep-alive self-ping background bot to prevent Render sleep
+    keepalive_service.start()
+
+    # If UptimeRobot API key is configured, verify/create monitor asynchronously
+    if settings.UPTIMEROBOT_API_KEY:
+        asyncio.create_task(keepalive_service.create_or_verify_uptimerobot_monitor())
+
     yield
     # Shutdown
+    keepalive_service.stop()
 
 app = FastAPI(
     title="GigScore API",
@@ -52,6 +63,7 @@ app.include_router(lender.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(audit.router, prefix="/api")
 app.include_router(demo.router, prefix="/api")
+app.include_router(keepalive.router, prefix="/api")
 
 # Mount permanent uploads directory
 UPLOAD_DIR = Path(__file__).resolve().parent.parent / "uploads"

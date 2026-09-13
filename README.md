@@ -1,41 +1,74 @@
-GigScore --- Synthetic Driver Earnings Statement Generator
+# GigScore — Synthetic Driver Earnings Statement Generator
 
-This README explains how to generate a synthetic GigScore Driver
-Earnings & Ride Statement PDF that matches the structure of the
-reference statement.
+Generate a **synthetic** GigScore "Driver Earnings & Ride Statement" PDF
+that mirrors the structure of the reference statement — for testing
+upload, parsing, feature-engineering, and ML pipelines.
 
-Important: The generated statement is synthetic/demo data only. It
-must not be presented as a real financial, employment, income, or
-credit document.
+> ⚠️ **This tool produces demo data only.** Generated PDFs must never be
+> presented as real financial, employment, income, or credit documents.
 
-Reference PDF Structure
+---
 
-The reference PDF is a one-page "GigScore - Driver Earnings & Ride
-Statement" containing:
+## Contents
 
-A document title
+- [Overview](#overview)
+- [Reference PDF Structure](#reference-pdf-structure)
+- [Quick Start: Copy-Paste Prompt](#quick-start-copy-paste-prompt)
+- [Example Input](#example-input)
+- [Data Consistency Rules](#data-consistency-rules)
+- [Expected PDF Layout](#expected-pdf-layout)
+- [Why This Format Is Useful](#why-this-format-is-useful)
+- [Safety / Demo Data Notice](#safety--demo-data-notice)
 
-A synthetic/demo-data disclaimer
+---
 
-Driver information
+## Overview
 
-A summary metrics table
+This README documents how to generate a synthetic, one-page **GigScore
+Driver Earnings & Ride Statement** PDF using Python and ReportLab. The
+output is designed to exercise a backend pipeline that:
 
-A monthly earnings summary table
+1. Extracts text from an uploaded PDF
+2. Identifies driver and platform fields
+3. Parses financial metrics
+4. Extracts monthly earnings records
+5. Converts extracted values into ML features
+6. Runs those features through a downstream assessment model
 
-A final synthetic-data disclaimer
+All generated documents are clearly and repeatedly labeled as synthetic
+so they can't be mistaken for genuine records.
 
-The reference contains driver/platform details followed by metrics such
-as period, completed rides, gross earnings, platform fees, estimated
-fuel costs, estimated net earnings, average monthly net income,
-cancellation rate, and average rating. It also contains six monthly
-records from March 2026 through August 2026.
+---
 
-Copy-Paste Prompt for ChatGPT
+## Reference PDF Structure
 
-Copy the prompt below into ChatGPT whenever you want to generate a new
-synthetic statement.
+The reference PDF is a one-page statement containing, in order:
 
+| # | Section |
+|---|---------|
+| 1 | Document title |
+| 2 | Synthetic/demo-data disclaimer |
+| 3 | Driver information |
+| 4 | Summary metrics table |
+| 5 | Monthly earnings summary table |
+| 6 | Final synthetic-data disclaimer |
+
+The summary table covers: period, completed rides, gross earnings,
+platform fees, estimated fuel costs, estimated net earnings, average
+monthly net income, cancellation rate, and average rating.
+
+The monthly table contains one row per month — the reference example
+spans **March 2026 through August 2026** (six months).
+
+---
+
+## Quick Start: Copy-Paste Prompt
+
+Paste the block below into ChatGPT (or another code-generation
+assistant) whenever you need a new synthetic statement. Replace the
+bracketed placeholders with your own synthetic values.
+
+```text
 Create a one-page PDF named [FILENAME].pdf using Python and ReportLab.
 
 The PDF must be a synthetic/demo document for testing a GigScore upload, parsing, feature-engineering, and ML workflow. It must NOT represent real earnings, employment, financial history, or a real financial statement.
@@ -90,56 +123,51 @@ FORMATTING REQUIREMENTS:
 11. Use the exact field names and headings specified above.
 12. Save the final file as [FILENAME].pdf and provide a download link.
 13. Before finishing, verify that the PDF was successfully generated and contains all required sections.
+```
 
-Example Input
+---
 
-For example, to create a statement for another synthetic driver, replace
-the placeholders with:
+## Example Input
 
-Driver: Ayan Kumar
+To generate a statement for a different synthetic driver, swap in
+values like:
+
+```
+Driver:    Ayan Kumar
 Driver ID: GS-DEMO-AK002
-Platform: Uber
-City: Pune
-Vehicle: Car
+Platform:  Uber
+City:      Pune
+Vehicle:   Car
 
-Period: Mar 2026 - Aug 2026
+Period:    Mar 2026 - Aug 2026
+```
 
-You can also provide your own synthetic monthly values.
+You can supply your own synthetic monthly figures as well — just follow
+the consistency rules below.
 
-Data Consistency Rules
+---
 
-When supplying values, keep the calculations internally consistent:
+## Data Consistency Rules
 
-Net earnings = Gross earnings − Platform fees − Estimated fuel
-costs
+Keep generated values internally consistent so the output is realistic
+enough to be useful for pipeline testing:
 
-Average monthly net income = Total net earnings ÷ number of
-months
+- **Net earnings** = Gross earnings − Platform fees − Estimated fuel costs
+- **Average monthly net income** = Total net earnings ÷ number of months
+- **Completed rides** = sum of monthly Trips
+- **Monthly Net** = Monthly Gross − Monthly Fees − Monthly Fuel
+- Use **INR** consistently for every monetary value
+- Use a consistent month format, e.g. `YYYY-MM`
 
-Completed rides = sum of monthly Trips
+---
 
-Monthly Net should equal Gross − Fees − Fuel.
+## Expected PDF Layout
 
-Use the same currency notation throughout: INR.
-
-Use a consistent month format such as YYYY-MM.
-
-These rules make the generated PDF more useful for testing parsing and
-ML feature-engineering pipelines.
-
-Expected PDF Layout
-
-The resulting PDF should visually follow this order:
-
+```
 GigScore - Driver Earnings & Ride Statement
 
 DEMO / SYNTHETIC DATA - NOT A REAL FINANCIAL STATEMENT
 
-Driver: ...
-Driver ID: ...
-Platform: ...
-City: ...
-Vehicle: ...
 
 ┌──────────────────────────┬─────────────────────────┐
 │ Metric                   │ Value                   │
@@ -166,31 +194,39 @@ Monthly Earnings Summary
 Synthetic records created for testing the GigScore upload,
 parsing, feature-engineering and ML workflow. They do not
 represent real earnings, employment or financial history.
+```
 
-Why This Format Is Useful
+---
 
-This format is designed for a project pipeline where a user uploads a
-PDF and the backend can:
+## Why This Format Is Useful
 
-1.Extract text from the PDF.
+This layout is designed for a pipeline where a user uploads a PDF and
+the backend:
 
-2.Identify driver and platform fields.
+1. Extracts text from the PDF
+2. Identifies driver and platform fields
+3. Parses financial metrics
+4. Extracts monthly earnings records
+5. Converts extracted values into ML features
+6. Runs the resulting features through a credit/earnings assessment model
 
-3.Parse financial metrics.
-
-4.Extract monthly earnings records.
-
-5.Convert the extracted values into ML features.
-
-6.Run the resulting features through a credit/earnings assessment
-model.
-
-The reference PDF explicitly describes itself as synthetic data created
+Every generated PDF explicitly states that it is synthetic data created
 for testing the GigScore upload, parsing, feature-engineering, and ML
 workflow.
 
-Safety / Demo Data Notice
+---
 
-Use fictional names, IDs, earnings, trips, and other values when
-generating test documents. Do not use the generated PDF as proof of
-income, employment, identity, or financial history.
+## Safety / Demo Data Notice
+
+- Use **fictional** names, IDs, earnings, trips, and other values when
+  generating test documents.
+- Do **not** use a generated PDF as proof of income, employment,
+  identity, or financial history.
+- Keep both disclaimers (top and bottom) intact in every generated
+  document — they are required, not optional decoration.
+
+---
+
+## Render Deployment & Anti-Sleep Keep-Alive Bot
+If hosting the backend on Render's free tier, Render automatically sleeps instances after 15 minutes of inactivity. To prevent this, GigScore includes built-in UptimeRobot integration and self-ping keepalive.
+See [RENDER_KEEPALIVE_UPTIMEROBOT_GUIDE.md](file:///d:/GigScore/RENDER_KEEPALIVE_UPTIMEROBOT_GUIDE.md) for 2-minute setup instructions.
