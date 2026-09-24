@@ -4,7 +4,7 @@ Strictly isolated for Driver persona.
 """
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel
 import numpy as np
 import pandas as pd
@@ -33,7 +33,8 @@ from app.db.mongodb import (
     monthly_features_col,
     consents_col,
     assessments_col,
-    users_col
+    users_col,
+    user_files_col
 )
 
 router = APIRouter(prefix="", tags=["Drivers"])
@@ -79,53 +80,86 @@ async def upload_statement_file(
         raise HTTPException(status_code=404, detail="Driver profile not found")
 
     content = await file.read()
-    if not content:
-        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    
+    from app.services.cloudinary_service import CloudinaryService
+    from app.services.document_parser_service import DocumentParserService
+    from app.services.feature_service import FeatureService
+    from app.services.assessment_service import AssessmentService
 
-    from app.services.storage_service import StorageService
-    from app.services.pdf_parser_service import PdfParserService
+    # 1. Strict validation
+    clean_filename, ext = CloudinaryService.validate_file(file, content=content)
 
-    result = StorageService.upload_statement_pdf(
+    # 2. Upload file to Cloudinary under user category
+    upload_res = CloudinaryService.upload_file(
         file_bytes=content,
-        original_filename=file.filename or "earnings_statement.pdf",
-        driver_id=profile_doc["id"]
+        original_filename=clean_filename,
+        user_id=current_user.id,
+        category="statements",
+        resource_type="auto"
     )
 
-    # Parse uploaded PDF structure and extract statements
+    # 3. Store file metadata in MongoDB user_files collection with rollback protection
+    file_id = f"file_{uuid.uuid4().hex[:12]}"
+    now_utc = datetime.now(timezone.utc)
+    file_doc = {
+        "id": file_id,
+        "file_id": file_id,
+        "user_id": current_user.id,
+        "driver_id": profile_doc["id"],
+        "original_filename": upload_res["filename"],
+        "cloudinary_public_id": upload_res["public_id"],
+        "cloudinary_url": upload_res["secure_url"],
+        "resource_type": upload_res["resource_type"],
+        "file_format": upload_res["format"],
+        "file_size": upload_res["bytes"],
+        "file_size_formatted": upload_res["file_size"],
+        "file_category": "statements",
+        "processing_status": "PROCESSED",
+        "created_at": now_utc
+    }
+
+    try:
+        user_files_col.insert_one(file_doc)
+    except Exception as db_err:
+        # Rollback: Clean up orphaned asset in Cloudinary
+        CloudinaryService.delete_file(upload_res["public_id"], resource_type=upload_res["resource_type"])
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to persist file record in database: {db_err}"
+        )
+
+    # 4. Multi-format Document Parsing (PDF, DOCX, CSV)
     parsed_data = {}
     try:
-        parsed_data = PdfParserService.parse_pdf(content, file.filename or "earnings_statement.pdf")
+        parsed_data = DocumentParserService.parse_document(content, clean_filename)
     except Exception as parse_err:
-        print(f"[PdfParser Notice] Could not parse tabular records immediately: {parse_err}")
+        print(f"[DocumentParser Notice] Could not parse tabular records immediately: {parse_err}")
 
     driver_profiles_col.update_one(
         {"id": profile_doc["id"]},
         {"$set": {
-            "uploaded_file_name": result["filename"],
-            "uploaded_file_url": result["url"],
-            "uploaded_file_size": result["file_size"],
-            "uploaded_file_path": result.get("local_path"),
-            "uploaded_at": datetime.utcnow(),
-            "ingested_at": datetime.utcnow(),
+            "uploaded_file_name": upload_res["filename"],
+            "uploaded_file_url": upload_res["secure_url"],
+            "uploaded_file_size": upload_res["file_size"],
+            "cloudinary_public_id": upload_res["public_id"],
+            "uploaded_at": now_utc,
+            "ingested_at": now_utc,
             "ola_connected": True,
             "uber_connected": True,
             "parsed_statement_data": parsed_data
         }}
     )
 
-    # Immediately ingest into MongoDB monthly features and compute ML assessment
-    from app.services.feature_service import FeatureService
-    from app.services.assessment_service import AssessmentService
-
+    # 5. Ingest into monthly features & compute ML assessment
     assessment_data = None
     records = []
     try:
         records = FeatureService.ingest_driver_data(
             driver_id=profile_doc["id"],
-            file_name=result["filename"],
+            file_name=upload_res["filename"],
             ola_connected=True,
             uber_connected=True,
-            file_url=result["url"]
+            file_url=upload_res["secure_url"]
         )
         assessment = AssessmentService.evaluate_driver_preview(
             driver_id=profile_doc["id"],
@@ -138,16 +172,19 @@ async def upload_statement_file(
 
     return {
         "status": "success",
-        "message": f"Statement file permanently stored via {result['provider']} and auto-ingested",
-        "file_name": result["filename"],
-        "file_url": result["url"],
-        "file_size": result["file_size"],
-        "provider": result["provider"],
+        "message": f"Statement file permanently stored via {upload_res['provider']} and auto-ingested",
+        "file_id": file_id,
+        "file_name": upload_res["filename"],
+        "file_url": upload_res["secure_url"],
+        "file_size": upload_res["file_size"],
+        "provider": upload_res["provider"],
+        "cloudinary_public_id": upload_res["public_id"],
         "parsed_driver_info": parsed_data.get("driver_info", {}),
         "parsed_months_count": len(parsed_data.get("monthly_records", [])) or len(records),
         "ml_summary": parsed_data.get("ml_summary", {}),
         "assessment": assessment_data
     }
+
 
 
 @router.get("/drivers/me/assessment")

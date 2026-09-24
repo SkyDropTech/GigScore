@@ -2,7 +2,7 @@
 Loan management and underwriting review service using MongoDB.
 """
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from fastapi import HTTPException, status
 
@@ -21,7 +21,7 @@ class LoanService:
         actor_email: Optional[str] = None
     ) -> LoanApplication:
         app_id = f"loan_{uuid.uuid4().hex[:12]}"
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         driver_doc = driver_profiles_col.find_one({"id": driver_id}) or {}
         file_name = getattr(loan_in, "uploaded_file_name", None) or driver_doc.get("uploaded_file_name", "earnings_statement.pdf")
@@ -83,7 +83,7 @@ class LoanService:
         if not target_status:
             raise HTTPException(status_code=400, detail="Invalid action. Must be APPROVE, REJECT, DENY, or REQUEST_INFO")
             
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         sanctioned = review_in.sanctioned_amount if review_in.sanctioned_amount is not None else review_in.approved_amount
         update_set = {
             "status": target_status,

@@ -42,6 +42,16 @@ export default function App() {
   }, []);
 
   const handleDriverLoginSuccess = (userObj) => {
+    // If authenticated user is admin or lender, redirect to Admin Ops Console
+    if (userObj.role === 'admin' || userObj.role === 'lender') {
+      setAdminUser(userObj);
+      setAuthToken(userObj.token);
+      const targetPath = location.state?.from?.pathname?.startsWith('/admin')
+        ? location.state.from.pathname
+        : '/admin/overview';
+      navigate(targetPath, { replace: true });
+      return;
+    }
     setDriverUser(userObj);
     setAuthToken(userObj.token);
     const targetPath = location.state?.from?.pathname?.startsWith('/driver')
@@ -68,7 +78,7 @@ export default function App() {
   const handleAdminLogout = () => {
     removeAuthToken();
     setAdminUser(null);
-    navigate('/login/admin', { replace: true });
+    navigate('/login/driver', { replace: true });
   };
 
   if (loadingInitial) {
@@ -82,44 +92,19 @@ export default function App() {
     );
   }
 
-  // Header for unauthenticated login screens
-  const renderLoginHeader = (activePortal) => (
-    <header className="px-6 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <img src="/gigscore-icon.png" alt="GigScore" className="w-7 h-7 object-contain" />
-        <span className="font-extrabold text-slate-900 text-sm tracking-tight">GigScore</span>
-        <span
-          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ml-1 border ${
-            activePortal === 'admin'
-              ? 'text-indigo-600 bg-indigo-50 border-indigo-200'
-              : 'text-blue-600 bg-blue-50 border-blue-200'
-          }`}
-        >
-          {activePortal === 'admin' ? 'Admin & Risk Desk' : 'Driver Portal'}
-        </span>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => navigate('/login/driver')}
-          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-colors cursor-pointer ${
-            activePortal === 'driver'
-              ? 'font-bold bg-blue-50 text-blue-700 border border-blue-200'
-              : 'font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          }`}
-        >
-          <Car size={13} /> Driver Portal
-        </button>
-        <button
-          onClick={() => navigate('/login/admin')}
-          className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-colors cursor-pointer ${
-            activePortal === 'admin'
-              ? 'font-bold bg-indigo-50 text-indigo-700 border border-indigo-200'
-              : 'font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          }`}
-        >
-          <Shield size={13} /> Admin & Risk Desk
-        </button>
+  // Header for unauthenticated login screen: seamless brand presentation matching reference image
+  const renderLoginHeader = () => (
+    <header className="max-w-[1340px] w-full mx-auto px-4 sm:px-8 lg:px-10 pt-6 sm:pt-8 pb-2 flex items-center justify-between bg-transparent">
+      <div className="flex items-center gap-3">
+        <img src="/gigscore-icon.png" alt="GigScore" className="w-10 h-10 sm:w-11 sm:h-11 object-contain drop-shadow-xs shrink-0" />
+        <div>
+          <div className="font-black text-xl sm:text-2xl tracking-tight text-slate-900 leading-none">
+            GigScore
+          </div>
+          <div className="text-[11px] sm:text-xs text-slate-500 font-medium mt-1">
+            Drive Today. Build Tomorrow.
+          </div>
+        </div>
       </div>
     </header>
   );
@@ -148,12 +133,10 @@ export default function App() {
           driverUser ? (
             <Navigate to="/driver/overview" replace />
           ) : (
-            <div className="min-h-screen bg-[#f8fafc] flex flex-col">
-              {renderLoginHeader('driver')}
-              <main className="flex-1 flex items-center justify-center">
-                <DriverPortalLogin onLoginSuccess={handleDriverLoginSuccess} />
-              </main>
-            </div>
+            <DriverPortalLogin
+              renderHeader={() => renderLoginHeader('driver')}
+              onLoginSuccess={handleDriverLoginSuccess}
+            />
           )
         }
       />
@@ -165,12 +148,10 @@ export default function App() {
           adminUser ? (
             <Navigate to="/admin/overview" replace />
           ) : (
-            <div className="min-h-screen bg-[#f8fafc] flex flex-col">
-              {renderLoginHeader('admin')}
-              <main className="flex-1 flex items-center justify-center">
-                <AdminPortalLogin onLoginSuccess={handleAdminLoginSuccess} />
-              </main>
-            </div>
+            <AdminPortalLogin
+              renderHeader={() => renderLoginHeader('admin')}
+              onLoginSuccess={handleAdminLoginSuccess}
+            />
           )
         }
       />

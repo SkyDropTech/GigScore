@@ -22,6 +22,7 @@ class User(MongoEntity):
     password_hash: str
     role: str # "driver" | "admin"
     status: str = "ACTIVE"
+    face_biometrics: Optional[Dict[str, Any]] = None
     created_at: datetime
 
 class DriverProfile(MongoEntity):
@@ -30,6 +31,9 @@ class DriverProfile(MongoEntity):
     city: str = "Bengaluru"
     platform: str = "Ola & Uber"
     vehicle_type: str = "Sedan (Dzire)"
+    dl_number: Optional[str] = None
+    aadhaar_last4: Optional[str] = None
+    dob: Optional[str] = None
     platform_start_date: str = "2024-01-01"
     tenure_months: int = 18
     kyc_status: str = "VERIFIED"
@@ -117,3 +121,19 @@ class AuditLog(MongoEntity):
     metadata: Dict[str, Any] = {}
     timestamp: datetime
     hash_signature: str
+
+class StoredFile(MongoEntity):
+    id: str
+    file_id: str
+    user_id: str
+    original_filename: str
+    cloudinary_public_id: str
+    cloudinary_url: str
+    resource_type: str = "raw" # "image" | "raw" | "auto"
+    file_format: str = "pdf" # "pdf", "docx", "png", "jpg", "csv", etc.
+    file_size: int = 0
+    file_size_formatted: str = "0 KB"
+    file_category: str = "statements" # "statements", "identity", "reports", "documents"
+    processing_status: str = "PENDING" # "PENDING", "PROCESSED", "FAILED"
+    created_at: datetime
+

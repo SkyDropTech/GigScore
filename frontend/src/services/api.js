@@ -4,6 +4,15 @@
  */
 
 const getApiBase = () => {
+  if (
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '::1' ||
+      import.meta.env.DEV)
+  ) {
+    return '/api';
+  }
   const envUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
   if (!envUrl) return '/api';
   const clean = envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl;
@@ -13,7 +22,25 @@ const getApiBase = () => {
 const API_BASE = getApiBase();
 
 export const resolveMediaUrl = (url) => {
-  if (!url) return '';
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (!trimmed || trimmed.startsWith('usr_') || trimmed.startsWith('drv_') || trimmed.startsWith('file_')) return '';
+  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) return trimmed;
+  if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://') && !trimmed.startsWith('/')) {
+    return '';
+  }
+  if (
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '::1')
+  ) {
+    if (trimmed.includes('.onrender.com/uploads/')) {
+      return trimmed.replace(/^https?:\/\/[^/]+(\/uploads\/.*)$/, '$1');
+    }
+    if (trimmed.startsWith('/')) return trimmed;
+    return trimmed;
+  }
   const backendBase = (import.meta.env.VITE_API_URL || 'https://gigscore-backend-kpio.onrender.com').replace(/\/+$/, '');
   if (url.includes('127.0.0.1:8000') || url.includes('localhost:8000')) {
     return url.replace(/^https?:\/\/(127\.0\.0\.1|localhost):8000/, backendBase);
@@ -68,6 +95,21 @@ export const api = {
     request('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+  faceLogin: (faceImage, roleHint = 'driver', emailHint = null) =>
+    request('/auth/face-login', {
+      method: 'POST',
+      body: JSON.stringify({ face_image: faceImage, role_hint: roleHint, email_hint: emailHint }),
+    }),
+  detectFace: (faceImage) =>
+    request('/auth/detect-face', {
+      method: 'POST',
+      body: JSON.stringify({ face_image: faceImage }),
+    }),
+  enrollFace: (faceImage) =>
+    request('/auth/enroll-face', {
+      method: 'POST',
+      body: JSON.stringify({ face_image: faceImage }),
     }),
   getMe: () => request('/users/me'),
 

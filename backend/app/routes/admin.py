@@ -4,7 +4,7 @@ Displays model registry, evaluation metrics, feature drift, and benchmark compar
 """
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import os
 
@@ -36,7 +36,7 @@ def get_model_versions(
             version="xgb-v3.2-calibrated",
             artifact_path="ml/artifacts/xgb_calibrated_model.joblib",
             active=True,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             metrics=metrics
         )
     ]
@@ -192,5 +192,5 @@ def ping_gateway(
         "response_time_ms": new_latency,
         "last_heartbeat": "Just now",
         "ping_status": "OK" if matched["status"] == "Healthy" else "DEGRADED_ACK",
-        "checked_at": datetime.utcnow().isoformat() + "Z"
+        "checked_at": datetime.now(timezone.utc).isoformat()
     }

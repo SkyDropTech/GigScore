@@ -2,6 +2,7 @@
 Demo support routes using MongoDB.
 Enables instant persona switching, scenario demonstrations, and one-click database reset.
 """
+import time
 from fastapi import APIRouter
 from typing import List, Dict, Any
 
@@ -11,9 +12,19 @@ from app.core.security import create_access_token
 
 router = APIRouter(prefix="/demo", tags=["Demo"])
 
+# In-memory micro-cache to prevent database connection exhaustion under concurrent load
+_PERSONAS_CACHE = None
+_PERSONAS_CACHE_EXPIRY = 0.0
+CACHE_TTL_SECONDS = 60.0
+
 @router.get("/personas")
 def get_demo_personas():
     """Returns all pre-seeded demo personas with ready-to-use login tokens for quick switching."""
+    global _PERSONAS_CACHE, _PERSONAS_CACHE_EXPIRY
+    now = time.time()
+    if _PERSONAS_CACHE is not None and now < _PERSONAS_CACHE_EXPIRY:
+        return _PERSONAS_CACHE
+
     personas = []
     for u in DEMO_USERS:
         user_doc = users_col.find_one({"email": u["email"]})
@@ -50,10 +61,16 @@ def get_demo_personas():
             "token": token,
             "driver_meta": driver_meta
         })
+
+    _PERSONAS_CACHE = personas
+    _PERSONAS_CACHE_EXPIRY = now + CACHE_TTL_SECONDS
     return personas
 
 @router.post("/reset")
 def reset_demo_database():
     """Resets the demo database and re-seeds fresh data and assessments into MongoDB."""
+    global _PERSONAS_CACHE, _PERSONAS_CACHE_EXPIRY
+    _PERSONAS_CACHE = None
+    _PERSONAS_CACHE_EXPIRY = 0.0
     seed_mongo_database(force_reset=True)
     return {"status": "success", "message": "Demo database successfully reset and seeded in MongoDB."}

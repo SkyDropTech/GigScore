@@ -3,7 +3,7 @@ Consent management endpoints using MongoDB.
 Allows drivers to view, grant, and revoke data access consent.
 """
 from fastapi import APIRouter, Depends, HTTPException, status
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 import uuid
 from pymongo import DESCENDING
@@ -28,7 +28,7 @@ def list_user_consents(
             user_id=c["user_id"],
             purpose=c.get("purpose", ""),
             scope=c.get("scope", ""),
-            granted_at=c.get("granted_at") or c.get("created_at") or datetime.utcnow(),
+            granted_at=c.get("granted_at") or c.get("created_at") or datetime.now(timezone.utc),
             revoked_at=c.get("revoked_at"),
             version=c.get("version", "v1.0"),
             is_active=(c.get("revoked_at") is None)
@@ -41,7 +41,7 @@ def grant_consent(
     req: ConsentCreate,
     current_user: User = Depends(get_current_user)
 ):
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     # Revoke any prior active consent first
     consents_col.update_many(
         {"user_id": current_user.id, "revoked_at": None},
@@ -93,7 +93,7 @@ def revoke_consent(
     if doc.get("user_id") != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
         
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     consents_col.update_one(
         {"id": consent_id},
         {"$set": {"revoked_at": now, "is_active": False}}
@@ -113,7 +113,7 @@ def revoke_consent(
         user_id=doc["user_id"],
         purpose=doc.get("purpose", ""),
         scope=doc.get("scope", ""),
-        granted_at=doc.get("granted_at") or doc.get("created_at") or datetime.utcnow(),
+        granted_at=doc.get("granted_at") or doc.get("created_at") or datetime.now(timezone.utc),
         revoked_at=now,
         version=doc.get("version", "v1.0"),
         is_active=False

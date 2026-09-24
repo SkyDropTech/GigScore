@@ -20,6 +20,11 @@ class TestGigScoreAPI(unittest.TestCase):
         seed_mongo_database(force_reset=True)
         cls.client = TestClient(app)
 
+    @classmethod
+    def tearDownClass(cls):
+        from scripts.clean_fake_data import clean_database
+        clean_database()
+
     def test_01_health_check(self):
         response = self.client.get("/api/health")
         self.assertEqual(response.status_code, 200)

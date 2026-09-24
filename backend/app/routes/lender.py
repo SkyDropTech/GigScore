@@ -4,7 +4,7 @@ Strictly isolated for Admin and Lender roles.
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 import numpy as np
 from pymongo import DESCENDING, ASCENDING
 
@@ -299,7 +299,7 @@ def batch_underwrite(
     """Executes real-time automated batch underwriting on all submitted loans in MongoDB."""
     pending_apps = list(loan_applications_col.find({"status": "SUBMITTED"}))
     count = 0
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     for app in pending_apps:
         new_status = "APPROVED" if float(app.get("requested_amount", 0)) <= 80000 else "UNDER_REVIEW"
         loan_applications_col.update_one(

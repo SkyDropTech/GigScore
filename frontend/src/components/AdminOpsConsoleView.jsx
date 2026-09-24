@@ -173,6 +173,7 @@ export default function AdminOpsConsoleView({ currentUser, onLogout }) {
   };
 
   const [activeMenu, setActiveMenuState] = useState(() => getMenuFromPath(location.pathname));
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   // Sync activeMenu when URL pathname changes (e.g. browser back/forward or deep link)
   useEffect(() => {
@@ -185,6 +186,7 @@ export default function AdminOpsConsoleView({ currentUser, onLogout }) {
   // Navigate URL when user clicks a menu tab
   const setActiveMenu = (menuKey) => {
     setActiveMenuState(menuKey);
+    setIsMobileDrawerOpen(false);
     navigate(`/admin/${menuKey}`);
   };
 
@@ -1049,9 +1051,19 @@ export default function AdminOpsConsoleView({ currentUser, onLogout }) {
       )}
 
       {/* ======================================================== */}
-      {/* 1. FIXED LEFT SIDEBAR                                    */}
+      {/* 1. SIDEBAR (Drawer on mobile, pinned on desktop)          */}
       {/* ======================================================== */}
-      <aside className="fixed left-0 top-0 h-screen w-72 bg-surface-container-lowest z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)] border-r border-surface-container-high/40 select-none">
+      {/* Mobile Drawer Backdrop Overlay */}
+      {isMobileDrawerOpen && (
+        <div
+          onClick={() => setIsMobileDrawerOpen(false)}
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-200"
+        />
+      )}
+
+      <aside className={`fixed left-0 top-0 h-screen w-72 bg-surface-container-lowest z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)] border-r border-surface-container-high/40 select-none transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        isMobileDrawerOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
         <div className="flex flex-col flex-1 min-h-0">
           {/* Header & Logo */}
           <div className="h-16 px-gutter flex items-center justify-between bg-surface-container-low/50">
@@ -1066,7 +1078,17 @@ export default function AdminOpsConsoleView({ currentUser, onLogout }) {
                 <span className="font-label-sm text-label-sm text-on-surface-variant font-medium tracking-wider">ADMIN CONSOLE</span>
               </div>
             </div>
-            <span className="px-space-sm py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm font-semibold">OPS</span>
+            <div className="flex items-center gap-1">
+              <span className="px-space-sm py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm font-semibold">OPS</span>
+              <button
+                type="button"
+                onClick={() => setIsMobileDrawerOpen(false)}
+                aria-label="Close menu"
+                className="p-1 rounded-lg text-on-surface-variant hover:text-on-surface lg:hidden cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
           </div>
 
           {/* Section Heading */}
@@ -1239,10 +1261,42 @@ export default function AdminOpsConsoleView({ currentUser, onLogout }) {
       </aside>
 
       {/* ======================================================== */}
-      {/* 2. MAIN WORKSPACE                                        */}
+      {/* 2. MAIN WORKSPACE (Responsive offset)                    */}
       {/* ======================================================== */}
-      <div className="pl-72">
-        <main className="w-full pt-8 px-margin pb-space-2xl min-h-screen bg-surface">
+      <div className="lg:pl-72 pl-0 min-h-screen flex flex-col">
+        {/* Mobile Top App Bar */}
+        <header className="lg:hidden sticky top-0 z-30 bg-surface/95 backdrop-blur-md border-b border-surface-container-high/40 px-4 py-3 flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setIsMobileDrawerOpen(true)}
+              className="p-1.5 -ml-1 rounded-lg text-on-surface hover:bg-surface-container cursor-pointer"
+              aria-label="Open menu"
+            >
+              <span className="material-symbols-outlined text-[24px]">menu</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <img src="/gigscore-icon.png" alt="GigScore" className="w-6 h-6 object-contain" />
+              <span className="font-headline-sm text-sm font-bold text-on-surface">Underwriting Ops</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={fetchRealData}
+              title="Refresh Data"
+              className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[20px]">sync</span>
+            </button>
+            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-xs">
+              {(currentUser?.full_name || 'Admin').slice(0, 1).toUpperCase()}
+            </div>
+          </div>
+        </header>
+
+        <main className="w-full pt-4 sm:pt-8 px-3 sm:px-6 lg:px-8 pb-16 lg:pb-12 min-h-screen bg-surface">
           <div className="flex flex-col w-full gap-space-lg">
 
             {/* ==================================================== */}

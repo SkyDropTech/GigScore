@@ -4,7 +4,7 @@ Pre-populates drivers, telemetry records, loans, assessments, and audit logs int
 """
 import os
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any
 
 from app.core.config import settings
@@ -184,7 +184,7 @@ def seed_mongo_database(force_reset: bool = False):
             "password_hash": pwd_hash,
             "role": u_info["role"],
             "status": "ACTIVE",
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc)
         }
         users_col.update_one({"id": user_doc["id"]}, {"$set": user_doc}, upsert=True)
 
@@ -204,7 +204,7 @@ def seed_mongo_database(force_reset: bool = False):
                 "uploaded_file_size": "2.8 MB",
                 "ola_connected": True,
                 "uber_connected": True,
-                "created_at": datetime.utcnow()
+                "created_at": datetime.now(timezone.utc)
             }
             driver_profiles_col.update_one({"id": driver_doc["id"]}, {"$set": driver_doc}, upsert=True)
 
@@ -215,8 +215,8 @@ def seed_mongo_database(force_reset: bool = False):
                 "scope": "rides,earnings,ratings,tenure",
                 "version": "v1.0",
                 "is_active": True,
-                "granted_at": datetime.utcnow(),
-                "created_at": datetime.utcnow(),
+                "granted_at": datetime.now(timezone.utc),
+                "created_at": datetime.now(timezone.utc),
                 "revoked_at": None
             }
             consents_col.update_one({"id": consent_doc["id"]}, {"$set": consent_doc}, upsert=True)
@@ -267,7 +267,7 @@ def seed_mongo_database(force_reset: bool = False):
                     "uploaded_file_name": f"{u_info['driver_id']}_verified_statement.pdf",
                     "uploaded_file_url": f"{settings.BASE_SERVER_URL.rstrip('/')}/uploads/statements/{u_info['driver_id']}_verified_statement.pdf",
                     "uploaded_file_size": "2.8 MB",
-                    "created_at": datetime.utcnow() - timedelta(days=1)
+                    "created_at": datetime.now(timezone.utc) - timedelta(days=1)
                 }
                 loan_applications_col.update_one({"id": loan_id}, {"$set": loan_doc}, upsert=True)
 

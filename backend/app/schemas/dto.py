@@ -1,7 +1,7 @@
 """
 Pydantic V2 Schemas for request and response validation.
 """
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
@@ -15,10 +15,40 @@ class RegisterRequest(BaseModel):
     city: Optional[str] = "Bengaluru"
     platform: Optional[str] = "Uber & Ola"
     vehicle_type: Optional[str] = "Sedan"
+    dl_number: Optional[str] = None
+    aadhaar_last4: Optional[str] = None
+    dob: Optional[str] = None
+    face_image: Optional[str] = None # Base64 or data URI captured during signup
 
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+class FaceLoginRequest(BaseModel):
+    face_image: str # Base64 camera capture snapshot
+    role_hint: Optional[str] = "driver" # "driver" | "admin" | "lender"
+    email_hint: Optional[str] = None
+
+class FaceEnrollRequest(BaseModel):
+    face_image: str # Base64 camera capture snapshot
+
+class QuickEnrollRequest(BaseModel):
+    email: EmailStr
+    face_image: str
+    full_name: Optional[str] = None
+    role: Optional[str] = "driver"
+
+class FaceDetectRequest(BaseModel):
+    face_image: str
+
+class FaceDetectResponse(BaseModel):
+    detected: bool
+    confidence: float = 0.0
+    box: Optional[List[int]] = None
+    landmarks: Optional[Dict[str, List[float]]] = None
+    elements: Optional[Dict[str, bool]] = None
+    quality: int = 0
+    message: str = ""
 
 class TokenResponse(BaseModel):
     access_token: str
@@ -27,6 +57,8 @@ class TokenResponse(BaseModel):
     email: str
     full_name: str
     role: str
+    avatar_url: Optional[str] = None
+    face_enrolled: Optional[bool] = False
 
 class UserOut(BaseModel):
     id: str
@@ -35,10 +67,11 @@ class UserOut(BaseModel):
     role: str
     phone: Optional[str] = None
     status: str
+    avatar_url: Optional[str] = None
+    face_enrolled: Optional[bool] = False
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Driver & Earnings ---
 class DriverProfileOut(BaseModel):
@@ -62,8 +95,7 @@ class DriverProfileOut(BaseModel):
     ingested_at: Optional[datetime] = None
     parsed_statement_data: Optional[Dict[str, Any]] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class MonthlyRecordOut(BaseModel):
     id: str
@@ -83,8 +115,7 @@ class MonthlyRecordOut(BaseModel):
     peak_hour_share: float
     weekend_share: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class DriverSummaryMetrics(BaseModel):
     tenure_months: int
@@ -117,8 +148,7 @@ class ConsentOut(BaseModel):
     version: str
     is_active: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Assessment & Factors ---
 class AssessmentFactorOut(BaseModel):
@@ -142,8 +172,7 @@ class AssessmentOut(BaseModel):
     created_at: datetime
     factors: List[AssessmentFactorOut] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Loan Application ---
 class LoanCreate(BaseModel):
@@ -182,8 +211,7 @@ class LoanOut(BaseModel):
     created_at: datetime
     latest_assessment: Optional[AssessmentOut] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Lender / Portfolio ---
 class PortfolioMetrics(BaseModel):
@@ -211,8 +239,7 @@ class AuditLogOut(BaseModel):
     metadata_json: Optional[str] = None
     hash_signature: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Model Version / MLOps ---
 class ModelVersionOut(BaseModel):
@@ -223,3 +250,31 @@ class ModelVersionOut(BaseModel):
     active: bool
     created_at: datetime
     metrics: Dict[str, Any] = {}
+
+# --- Files / Cloudinary Metadata ---
+class StoredFileOut(BaseModel):
+    id: str
+    file_id: str
+    user_id: str
+    original_filename: str
+    cloudinary_public_id: str
+    cloudinary_url: str
+    resource_type: str = "raw"
+    file_format: str = "pdf"
+    file_size: int = 0
+    file_size_formatted: str = "0 KB"
+    file_category: str = "statements"
+    processing_status: str = "PENDING"
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class FileUploadResponse(BaseModel):
+    status: str = "success"
+    message: str
+    file: StoredFileOut
+
+class StoredFileListOut(BaseModel):
+    total: int
+    files: List[StoredFileOut]
+

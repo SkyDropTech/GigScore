@@ -9,7 +9,7 @@ import json
 import uuid
 import joblib
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Tuple, Optional
 
 # Add ml/src to sys.path (supports both repo root and backend-only deployments)
@@ -20,7 +20,10 @@ if ML_SRC_DIR not in sys.path:
     sys.path.insert(0, ML_SRC_DIR)
 
 from features import MODEL_FEATURE_NAMES
-from explain import CreditExplainer
+try:
+    from explain import CreditExplainer
+except Exception as _e:
+    CreditExplainer = None
 from app.db.mongodb import assessments_col, loan_applications_col, driver_profiles_col
 from app.models.mongo_models import Assessment, LoanApplication, DriverProfile
 from app.services.feature_service import FeatureService
@@ -142,7 +145,7 @@ class AssessmentService:
 
         # 8. Create Assessment Document
         assessment_id = f"asmt_{uuid.uuid4().hex[:12]}"
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         assessment_doc = {
             "id": assessment_id,
             "application_id": app.id,
@@ -245,7 +248,7 @@ class AssessmentService:
             })
 
         assessment_id = f"asmt_prev_{uuid.uuid4().hex[:12]}"
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         assessment_doc = {
             "id": assessment_id,
             "application_id": "PREVIEW",

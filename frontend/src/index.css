@@ -60,11 +60,22 @@
   --spacing-margin-mobile: 1rem;
   --spacing-gutter: 1.5rem;
   --spacing-gutter-mobile: 1rem;
+
+  --font-headline: 'Manrope', sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 :root {
   --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-headline: 'Manrope', sans-serif;
+}
+
+.font-headline {
+  font-family: var(--font-headline) !important;
+}
+
+.font-main {
+  font-family: var(--font-main) !important;
 }
 
 body {
@@ -73,6 +84,17 @@ body {
   padding: 0;
   background-color: #f8f9ff;
   color: #0b1c30;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+/* Smooth touch scrolling for scrollable containers */
+.overflow-x-auto, .overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Material Symbols icon styling with local asset + CDN fallback */
@@ -214,4 +236,81 @@ body {
 }
 .spin {
   animation: spin 1s linear infinite;
+}
+
+/* Biometric Face ID Camera Viewfinder & HUD Animations */
+@keyframes laserSweep {
+  0% {
+    top: 6%;
+    opacity: 0.2;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    top: 92%;
+    opacity: 0.2;
+  }
+}
+
+@keyframes radarSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes radarCounterSpin {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes bracketPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.85));
+  }
+}
+
+@keyframes biometricGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.25), inset 0 0 20px rgba(6, 182, 212, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(6, 182, 212, 0.55), inset 0 0 30px rgba(6, 182, 212, 0.35);
+  }
+}
+
+.animate-laser-sweep {
+  animation: laserSweep 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+.animate-radar-spin {
+  animation: radarSpin 12s linear infinite;
+}
+
+.animate-radar-reverse {
+  animation: radarCounterSpin 18s linear infinite;
+}
+
+.animate-bracket-pulse {
+  animation: bracketPulse 2s ease-in-out infinite;
+}
+
+.animate-biometric-glow {
+  animation: biometricGlow 2.5s ease-in-out infinite;
 }
